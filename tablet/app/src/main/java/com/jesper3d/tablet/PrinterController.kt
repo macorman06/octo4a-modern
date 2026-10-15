@@ -150,7 +150,9 @@ class PrinterController(private val context: Context) {
                 log("< $unsolicited")
             }
             if (command == "M503") mutable.update { it.copy(snapshot = it.snapshot.copy(settings = emptyList())) }
-            if (command == "G29") mutable.update { it.copy(snapshot = it.snapshot.copy(probePoints = emptyList())) }
+            if (command == "M114") mutable.update { it.copy(snapshot = it.snapshot.copy(position = null)) }
+            if (command == "G28") mutable.update { it.copy(snapshot = it.snapshot.copy(leveling = null, position = null)) }
+            if (command == "G29") mutable.update { it.copy(snapshot = it.snapshot.copy(probePoints = emptyList(), mesh = null, leveling = null)) }
             val meshReader = if (command == "M420 V") BilinearMeshReader() else null
             if (meshReader != null) mutable.update { it.copy(snapshot = it.snapshot.copy(mesh = null)) }
             write(command)
