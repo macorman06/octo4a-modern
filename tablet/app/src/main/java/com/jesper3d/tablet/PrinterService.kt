@@ -14,12 +14,20 @@ import androidx.core.content.IntentCompat
 class PrinterService : Service() {
     private val controller get() = (application as PrinterApplication).printer
     private var deviceName: String? = null
+    private var wakeLock: PowerManager.WakeLock? = null
+    private val wakeHandler = Handler(Looper.getMainLooper())
+    private val renewWakeLock = object : Runnable {
+        override fun run() {
+            wakeLock?.acquire(20 * 60 * 1000L)
+            wakeHandler.postDelayed(this, 10 * 60 * 1000L)
+        }
+    }
     private val detach = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val device = IntentCompat.getParcelableExtra(intent, UsbManager.EXTRA_DEVICE, UsbDevice::class.java)
             if (device?.deviceName == deviceName) {
                 controller.notice("Cable USB desconectado. La impresora puede seguir caliente.")
-                controller.disconnect()
+                controller.disconnect(null)
             }
         }
     }
@@ -47,13 +55,21 @@ class PrinterService : Service() {
             .setContentIntent(pending).setOngoing(true).build()
         ServiceCompat.startForeground(this, 1, notification,
             if (Build.VERSION.SDK_INT >= 29) ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE else 0)
+        if (wakeLock == null) {
+            wakeLock = getSystemService(PowerManager::class.java).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Jesper3D:UsbSession")
+                .apply { setReferenceCounted(false) }
+            renewWakeLock.run()
+        }
         controller.connect(deviceName!!, intent?.getIntExtra("baud", 115200) ?: 115200)
         return START_NOT_STICKY
     }
     override fun onDestroy() {
+        wakeHandler.removeCallbacks(renewWakeLock)
+        if (wakeLock?.isHeld == true) wakeLock?.release()
+        wakeLock = null
         unregisterReceiver(detach)
         controller.onClosed = null
-        controller.disconnect()
+        controller.disconnect(null)
         super.onDestroy()
     }
     override fun onBind(intent: Intent?) = null

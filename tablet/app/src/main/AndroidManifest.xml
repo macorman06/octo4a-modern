@@ -4,6 +4,7 @@
     <uses-feature android:name="android.hardware.usb.host" android:required="true" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <application android:name=".PrinterApplication" android:allowBackup="false"
         android:label="Jesper 3D" android:icon="@drawable/ic_printer"
         android:theme="@style/AppTheme" android:supportsRtl="true">
