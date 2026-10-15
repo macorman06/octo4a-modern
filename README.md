@@ -6,6 +6,8 @@ El proyecto nuevo está en **[tablet/](tablet/README.md)**: ajustes activos, tem
 
 El código original de Octo4a se conserva en `app/`. La nueva app no necesita ejecutar OctoPrint. Se mantiene la licencia AGPL-3.0 del proyecto de origen.
 
+La evolución hacia gestión del taller y ventas está definida en **[el plan de producto](docs/README.md)**: módulos separados, inventario, compras y enlaces, costes, presupuestos internos y para cliente, pedidos, informes y mejoras. Es planificación; estas funciones todavía no forman parte de la APK 0.2.
+
 ---
 
 # octo4a - Run OctoPrint on Android
