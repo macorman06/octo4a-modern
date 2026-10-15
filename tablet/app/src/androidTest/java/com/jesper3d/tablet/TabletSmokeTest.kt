@@ -31,7 +31,10 @@ class TabletSmokeTest {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
-        File(instrumentation.targetContext.getExternalFilesDir(null), name).outputStream().use {
+        // UTP collects this directory before uninstalling the test app and its data.
+        val directory = File(instrumentation.targetContext.externalMediaDirs.first(), "additional_test_output")
+        check(directory.isDirectory || directory.mkdirs())
+        File(directory, name).outputStream().use {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         }
         bitmap.recycle()
