@@ -61,12 +61,16 @@ class MainActivity : ComponentActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         ContextCompat.registerReceiver(this, receiver, IntentFilter(permissionAction), ContextCompat.RECEIVER_NOT_EXPORTED)
         scan()
         setContent {
             JesperTheme {
                 val state by printer.state.collectAsStateWithLifecycle()
+                DisposableEffect(state.connected) {
+                    if (state.connected) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    onDispose { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+                }
                 PrinterScreen(state, printer, devices, ::scan, ::requestConnection) { name, type, text ->
                     runCatching {
                         exportFile.writeText(text)

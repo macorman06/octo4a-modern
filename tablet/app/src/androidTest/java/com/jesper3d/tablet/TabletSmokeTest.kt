@@ -20,6 +20,7 @@ class TabletSmokeTest {
         compose.onNodeWithText("Tu cama, punto a punto").assertIsDisplayed()
         compose.onNodeWithText("Leer malla").assertIsNotEnabled()
         compose.onNodeWithText("Medir cama").assertIsNotEnabled()
+        compose.onNodeWithText("Guardar en impresora").assertIsDisplayed().assertIsNotEnabled()
         screenshot("tablet-bed.png")
         compose.onNodeWithTag("nav-0").performClick()
         compose.onNodeWithText("Aplicar").assertIsNotEnabled()
@@ -48,6 +49,7 @@ class TabletSmokeTest {
         compose.onNodeWithTag("mesh-map").assertExists().performTouchInput { click(center) }
         compose.onNodeWithTag("selected-point").assertTextContains("Punto [2, 2]", substring = true)
         compose.onNodeWithText("Exportar CSV").assertIsEnabled()
+        compose.onNodeWithText("Guardar en impresora").assertIsDisplayed().assertIsNotEnabled()
         screenshot("tablet-mesh-simulated.png")
         compose.onNodeWithTag("compare-mesh").performScrollTo().performClick()
         compose.onNodeWithText("Cambio máximo").assertExists()

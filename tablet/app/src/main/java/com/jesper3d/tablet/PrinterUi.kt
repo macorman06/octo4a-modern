@@ -137,8 +137,11 @@ private fun OperationStatus(state: UiState) {
             state.startedAt?.let { Text("${((now - it).coerceAtLeast(0) / 1000)} s", style = MaterialTheme.typography.labelMedium) }
         }
         LinearProgressIndicator(Modifier.fillMaxWidth())
-        if (state.operation == Operation.PROBE) Text("${state.snapshot.probePoints.size} puntos recibidos · paso ${state.stepIndex}/${state.stepCount}",
-            style = MaterialTheme.typography.bodySmall)
+        if (state.operation == Operation.PROBE) {
+            val points = maxOf(state.snapshot.probePoints.size, state.liveRecord?.mesh?.values?.size ?: 0)
+            Text((if (points > 0) "$points puntos recibidos" else "Esperando datos de sondeo") + " · paso ${state.stepIndex}/${state.stepCount}",
+                style = MaterialTheme.typography.bodySmall)
+        }
     } else Text(state.message, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
     state.error?.let { message -> Surface(color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(10.dp)) {
         Text(message, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)

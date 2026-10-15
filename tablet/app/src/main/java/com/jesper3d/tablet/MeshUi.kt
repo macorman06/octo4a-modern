@@ -30,6 +30,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun BedPage(state: UiState, printer: PrinterController, ready: Boolean, export: ExportDocument,
     confirm: (Confirmation) -> Unit) {
     var historyId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -44,10 +45,13 @@ internal fun BedPage(state: UiState, printer: PrinterController, ready: Boolean,
     val displayMesh = if (compare && delta != null) delta.mesh else record?.mesh
 
     PageTitle("Tu cama, punto a punto", "Mide, revisa y conserva cada calibración.")
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Button({ measureDialog = true }, enabled = ready && printer.profileConfirmed && printer.bilinearConfirmed &&
             state.snapshot.capabilities["Z_PROBE"] == true && state.snapshot.capabilities["AUTOLEVEL"] == true) { Text("Medir cama") }
         OutlinedButton({ historyId = null; compare = false; printer.action(Commands.mesh) }, enabled = ready) { Text("Leer malla") }
+        OutlinedButton({ confirm(Confirmation("Guardar en la impresora", "Se enviará M500 para guardar los ajustes activos admitidos por Marlin. La copia de la tablet es independiente. Verifica la persistencia después de reiniciar.", "Guardar") { printer.save() }) },
+            enabled = ready && !archived && state.liveRecord != null && state.snapshot.capabilities["EEPROM"] == true) { Text("Guardar en impresora") }
+        if (record != null) TextButton({ export("malla-${record.capturedAt}.csv", "text/csv", MeshHistoryCodec.csv(record)) }) { Text("Exportar CSV") }
     }
     MeshStorageStatus(state, record, archived)
     if (displayMesh != null && record != null) {
@@ -73,11 +77,6 @@ internal fun BedPage(state: UiState, printer: PrinterController, ready: Boolean,
                 }
                 MeshMap(displayMesh, difference = compare && delta != null)
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            OutlinedButton({ confirm(Confirmation("Guardar en la impresora", "Se enviará M500 para guardar los ajustes activos admitidos por Marlin. La copia de la tablet es independiente. Verifica la persistencia después de reiniciar.", "Guardar") { printer.save() }) },
-                enabled = ready && !archived && state.snapshot.capabilities["EEPROM"] == true) { Text("Guardar en impresora") }
-            TextButton({ export("malla-${record.capturedAt}.csv", "text/csv", MeshHistoryCodec.csv(record)) }) { Text("Exportar CSV") }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Compensación de la impresora", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
@@ -146,7 +145,8 @@ private fun MeshStorageStatus(state: UiState, record: MeshRecord?, archived: Boo
         record != null -> "Mapa actualizado · ${timeLabel(state.meshReadAt)}"
         else -> "Sin malla recibida"
     }
-    val storage = if (archived) "La copia de la tablet no demuestra qué hay guardado ahora en la impresora."
+    val storage = if (record == null) "Consulta los puntos de la cama. Guardado en la impresora sin verificar."
+    else if (archived) "La copia de la tablet no demuestra qué hay guardado ahora en la impresora."
     else when (state.meshSaveState) {
         MeshSaveState.CONFIRMED -> "Marlin confirmó M500 ${timeLabel(state.meshSavedAt)}. Persistencia tras reinicio sin verificar."
         MeshSaveState.UNSAVED -> "Cambios en RAM · pendiente de guardar en la impresora."
