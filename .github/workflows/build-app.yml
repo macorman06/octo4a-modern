@@ -2,6 +2,7 @@ name: Build app
 on: [pull_request, push]
 jobs:
   build:
+    if: github.repository == 'feelfreelinux/octo4a'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
