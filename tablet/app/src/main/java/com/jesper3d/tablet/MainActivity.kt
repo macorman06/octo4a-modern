@@ -21,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -94,6 +95,8 @@ private fun PrinterScreen(state: UiState, printer: PrinterController, devices: L
     var showProfile by rememberSaveable { mutableStateOf(false) }
     val ready = state.connected && !state.busy && state.snapshot.isMarlin
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+      BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wide = maxWidth >= 840.dp
         Column(Modifier.safeDrawingPadding()) {
             Row(Modifier.fillMaxWidth().padding(20.dp, 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -118,13 +121,11 @@ private fun PrinterScreen(state: UiState, printer: PrinterController, devices: L
                 Text(it, Modifier.fillMaxWidth().padding(20.dp, 10.dp), color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium)
             }
-            BoxWithConstraints(Modifier.weight(1f)) {
-                val wide = maxWidth >= 840.dp
-                Row {
+            Row(Modifier.weight(1f)) {
                     if (wide) {
                         Column(Modifier.width(168.dp).fillMaxHeight().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             sections.forEachIndexed { i, label ->
-                                FilledTonalButton(onClick = { section = i }, modifier = Modifier.fillMaxWidth(),
+                                FilledTonalButton(onClick = { section = i }, modifier = Modifier.fillMaxWidth().testTag("nav-$i"),
                                     colors = if (section == i) ButtonDefaults.filledTonalButtonColors() else
                                         ButtonDefaults.filledTonalButtonColors(containerColor = Color.Transparent)) { Text(label) }
                             }
@@ -136,19 +137,18 @@ private fun PrinterScreen(state: UiState, printer: PrinterController, devices: L
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(18.dp)) {
                         when (section) {
-                            0 -> Overview(state, printer, ready, wide) { confirmation = it }
+                            0 -> Overview(state, printer, ready) { confirmation = it }
                             1 -> BedScreen(state, printer, ready) { confirmation = it }
                             2 -> SettingsScreen(state, printer, ready) { confirmation = it }
                             3 -> ConsoleScreen(state)
                         }
                     }
-                }
-                if (!wide) { /* Navigation is below the content on smaller screens. */ }
             }
-            if (sections.isNotEmpty()) Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                sections.forEachIndexed { i, text -> TextButton(onClick = { section = i }) { Text(if (section == i) "• $text" else text) } }
+            if (!wide) Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                sections.forEachIndexed { i, text -> TextButton(onClick = { section = i }, modifier = Modifier.testTag("nav-$i")) { Text(if (section == i) "• $text" else text) } }
             }
         }
+      }
     }
     confirmation?.let { confirm ->
         AlertDialog(onDismissRequest = { confirmation = null }, title = { Text(confirm.title) }, text = { Text(confirm.detail) },
@@ -170,7 +170,7 @@ private fun Panel(title: String, modifier: Modifier = Modifier, content: @Compos
 }
 
 @Composable
-private fun Overview(state: UiState, printer: PrinterController, ready: Boolean, wide: Boolean, confirm: (Confirmation) -> Unit) {
+private fun Overview(state: UiState, printer: PrinterController, ready: Boolean, confirm: (Confirmation) -> Unit) {
     Text("Tu impresora, a mano", style = MaterialTheme.typography.headlineMedium)
     Text("Consulta el estado y prepara la máquina antes de imprimir.", color = MaterialTheme.colorScheme.onSurfaceVariant)
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {

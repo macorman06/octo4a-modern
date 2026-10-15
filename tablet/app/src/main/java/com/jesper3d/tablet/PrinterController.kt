@@ -43,7 +43,7 @@ class PrinterController(private val context: Context) {
     private var manager: SerialInputOutputManager? = null
     private var requests = Channel<CommandBatch>(1)
     private var replies = Channel<String>(256)
-    private var generation = 0
+    @Volatile private var generation = 0
     var onClosed: (() -> Unit)? = null
     private val prefs = context.getSharedPreferences("machine", Context.MODE_PRIVATE)
     var profile: MachineProfile = MachineProfile(
@@ -129,7 +129,7 @@ class PrinterController(private val context: Context) {
                 if (generation == id) generation++
                 manager?.stop(); manager = null
                 runCatching { port?.close() }; port = null
-                connection?.close(); connection = null
+                runCatching { connection?.close() }; connection = null
                 occupied.set(false)
                 mutable.update { it.copy(connected = false, busy = false, homed = false) }
                 withContext(NonCancellable + Dispatchers.Main) { onClosed?.invoke() }
