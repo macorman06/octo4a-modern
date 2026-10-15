@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +35,16 @@ internal fun timeLabel(time: Long?) = time?.let { SimpleDateFormat("dd MMM · HH
 @Composable
 internal fun JesperTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
+    val activity = LocalContext.current as? android.app.Activity
+    val view = LocalView.current
+    SideEffect {
+        activity?.window?.let { window ->
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !dark
+                isAppearanceLightNavigationBars = !dark
+            }
+        }
+    }
     val colors = if (dark) darkColorScheme(
         primary = Color(0xFF97D5C4), onPrimary = Color(0xFF073B30),
         primaryContainer = Color(0xFF203E35), onPrimaryContainer = Color(0xFFD8F5EA),

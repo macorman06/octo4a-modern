@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
         if (result.resultCode == RESULT_OK) result.data?.data?.let { uri ->
             runCatching {
                 requireNotNull(contentResolver.openOutputStream(uri)).use { output -> exportFile.inputStream().use { it.copyTo(output) } }
-            }.onSuccess { printer.notice("Archivo exportado.") }.onFailure { printer.notice("No se pudo guardar el archivo: ${it.message}") }
+            }.onSuccess { exportNotice("Archivo exportado.") }.onFailure { exportNotice("No se pudo guardar el archivo: ${it.message}") }
         }
     }
     private val receiver = object : BroadcastReceiver() {
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                         exportFile.writeText(text)
                         exportDocument.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
                             .setType(type).putExtra(Intent.EXTRA_TITLE, name))
-                    }.onFailure { printer.notice("No se pudo preparar la exportación.") }
+                    }.onFailure { exportNotice("No se pudo preparar la exportación.") }
                 }, importPricing = { importPricing.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) })
                 pendingPricing?.let { candidate ->
                     AlertDialog(onDismissRequest = { pendingPricing = null }, title = { Text("Importar modelo económico") },
@@ -101,6 +101,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     private fun scan() { devices = UsbSerialProber.getDefaultProber().findAllDrivers(usb) }
+    private fun exportNotice(message: String) { printer.notice(message); pricing.notice(message) }
     private fun requestConnection(name: String, baud: Int) {
         val device = usb.deviceList.values.firstOrNull { it.deviceName == name } ?: run { scan(); return }
         if (usb.hasPermission(device)) startConnection(name, baud)

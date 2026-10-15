@@ -87,7 +87,7 @@ class PricingStore(context: Context, name: String = "business-pricing") {
         PricingJson.parse(encoded)
         check(prefs.edit().putString("model", encoded).commit()) { "No se pudo guardar el modelo. Vuelve a intentarlo." }
         mutable.value = model
-        notices.value = "Modelo guardado en la tablet. Se recalcula el borrador abierto; no hay presupuestos enviados en esta versión."
+        notices.value = "Modelo guardado en la tablet."
     }
     fun notice(message: String) { notices.value = message }
 }

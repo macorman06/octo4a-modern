@@ -48,6 +48,11 @@ class PricingTest {
         val r = Pricing.evaluate(model, input().copy(printingMinutes = d("1"), electricityIncluded = true)).totals!!
         eq("0.00", r.electricity)
     }
+    @Test fun exactHalfCentRoundsUpAndUnitCountsMustBeWhole() {
+        eq("0.01", d("0.005").cents())
+        val component = material.copy(unit = "ud", purchaseQuantity = d("1"))
+        assertNull(Pricing.evaluate(model, input().copy(materials = listOf(MaterialUse(component, d("0.5"))))).totals)
+    }
     @Test fun repeatedPriceObservationsAreNotDeduplicated() {
         eq("4", material.copy(purchaseQuantity = d("1"), prices = listOf(d("3"), d("3"), d("6"))).unitPrice)
     }

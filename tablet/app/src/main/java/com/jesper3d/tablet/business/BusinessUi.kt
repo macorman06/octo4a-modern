@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,8 @@ import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 import java.util.UUID
+import java.security.MessageDigest
+import org.json.JSONObject
 
 internal fun money(value: BigDecimal): String = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-ES")).format(value)
 private fun short(value: BigDecimal): String = value.stripTrailingZeros().toPlainString().replace('.', ',')
@@ -57,7 +60,8 @@ internal fun BusinessScreen(store: PricingStore, onBack: () -> Unit, importProfi
             } }
             if (message.isNotBlank()) Text(message, Modifier.fillMaxWidth().padding(16.dp), style = MaterialTheme.typography.bodySmall)
             holder.SaveableStateProvider(page) {
-                Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+                Column(Modifier.weight(1f).widthIn(max = 880.dp).fillMaxWidth().align(Alignment.CenterHorizontally)
+                    .verticalScroll(rememberScrollState()).padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     val current = model
                     if (current == null) {
@@ -117,11 +121,28 @@ private fun CalculatorPage(model: PricingModel, export: ExportDocument) {
     var selected by rememberSaveable { mutableStateOf("") }
     // Encoded strings are saveable across rotation; no committed quote/history is claimed.
     var quantities by rememberSaveable { mutableStateOf("") }
-    val amounts = quantities.lineSequence().mapNotNull { line ->
-        val split = line.split('=', limit = 2); if (split.size == 2) split[0] to split[1] else null
-    }.toMap()
-    fun setAmount(id: String, value: String) { quantities = (amounts + (id to value)).entries.joinToString("\n") { "${it.key}=${it.value}" } }
-    fun remove(id: String) { quantities = (amounts - id).entries.joinToString("\n") { "${it.key}=${it.value}" } }
+    val amounts = if (quantities.isBlank()) emptyMap() else JSONObject(quantities).let { json ->
+        json.keys().asSequence().associateWith { json.getString(it) }
+    }
+    fun setAmount(id: String, value: String) { quantities = JSONObject(amounts + (id to value)).toString() }
+    fun remove(id: String) { quantities = JSONObject(amounts - id).toString() }
+    val fingerprint = remember(model) { MessageDigest.getInstance("SHA-256")
+        .digest(PricingJson.encode(model).toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) } }
+    var draftFingerprint by rememberSaveable { mutableStateOf(fingerprint) }
+    val modelChanged = draftFingerprint != fingerprint
+    val missingMaterials = amounts.keys - model.materials.map { it.id }.toSet()
+    // Gate complete totals during the change itself, before the effect can refresh saved state.
+    LaunchedEffect(fingerprint) {
+        if (draftFingerprint != fingerprint) {
+            reviewed = false
+            if (selected.isNotBlank()) {
+                val rate = model.design.firstOrNull { it.id == selected }
+                designRate = rate?.hourly?.let(::short).orEmpty()
+                if (rate == null) selected = ""
+            }
+            draftFingerprint = fingerprint
+        }
+    }
     var publicText by remember { mutableStateOf<String?>(null) }
     Text("Calcula un trabajo", style = MaterialTheme.typography.headlineSmall)
     Text("Cálculo provisional del lote completo. No es un presupuesto enviado ni un pedido guardado.", style = MaterialTheme.typography.bodySmall)
@@ -142,6 +163,11 @@ private fun CalculatorPage(model: PricingModel, export: ExportDocument) {
             TextButton({ remove(material.id); reviewed = false }) { Text("Quitar ${material.name}") }
         }
     }
+    missingMaterials.forEach { id ->
+        Text("Un material del borrador ya no está en este modelo. Importa el perfil anterior o quita la línea para continuar.",
+            Modifier.testTag("missing-material"), color = MaterialTheme.colorScheme.error)
+        TextButton({ remove(id); reviewed = false }) { Text("Quitar material no disponible") }
+    }
     Toggle("Materiales revisados. Si la lista está vacía, confirmo que este trabajo no consume material.", reviewed, { reviewed = it }, "materials-reviewed")
     HorizontalDivider()
     Text("Importes por tu trabajo", style = MaterialTheme.typography.titleMedium)
@@ -151,7 +177,7 @@ private fun CalculatorPage(model: PricingModel, export: ExportDocument) {
             label = { Text(rate.name) })
     } }
     NumberField("Minutos de diseño", designMinutes, { designMinutes = it }, "design-minutes")
-    NumberField("Tarifa de diseño (€/h)", designRate, { designRate = it }, "design-rate")
+    NumberField("Tarifa de diseño (€/h)", designRate, { designRate = it; selected = "" }, "design-rate")
     NumberField("Minutos de impresión", printingMinutes, { printingMinutes = it }, "printing-minutes")
     NumberField("Minutos de montaje", assemblyMinutes, { assemblyMinutes = it }, "assembly-minutes")
     Text("Impresión: ${money(model.printingHourly)}/h · Montaje: ${money(model.assemblyHourly)}/h. Son importes cobrados, no gastos.", style = MaterialTheme.typography.bodySmall)
@@ -171,7 +197,7 @@ private fun CalculatorPage(model: PricingModel, export: ExportDocument) {
     Text("Sustituye el precio calculado y conserva la base. Margen adicional: ${short(model.additionalMargin * BigDecimal("100"))} % · Impuestos configurados: ${short(model.tax * BigDecimal("100"))} %.", style = MaterialTheme.typography.bodySmall)
     val uses = model.materials.filter { it.id in amounts }.map { MaterialUse(it, decimal(amounts[it.id].orEmpty())) }
     val invalidOptional = agreed.isNotBlank() && decimal(agreed) == null
-    val evaluated = Pricing.evaluate(model, QuoteInput(uses, reviewed, decimal(designMinutes), decimal(designRate),
+    val evaluated = Pricing.evaluate(model, QuoteInput(uses, reviewed && !modelChanged && missingMaterials.isEmpty(), decimal(designMinutes), decimal(designRate),
         decimal(printingMinutes), decimal(assemblyMinutes), power, chargePower,
         if (extra) listOf(ExtraExpense("Gasto adicional", decimal(extraAmount), chargeExtra)) else emptyList(), decimal(agreed)))
     val totals = if (invalidOptional) null else evaluated.totals

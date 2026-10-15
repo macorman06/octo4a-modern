@@ -48,8 +48,10 @@ class BusinessTest {
             compose.onNodeWithTag(tag).performScrollTo().performTextInput(value)
         }
         compose.onNodeWithTag("estimated-profit").performScrollTo().assertExists()
+        screenshot("pricing-calculation-tablet.png")
         compose.onNodeWithTag("preview-customer").performScrollTo().performClick()
         compose.onNodeWithTag("customer-preview").assertTextContains("17,00", substring = true)
+        screenshot("pricing-customer-tablet.png")
         compose.onNodeWithText("Exportar texto para cliente").performClick()
         compose.runOnIdle {
             assertTrue(exported!!.contains("PRUEBA · Pieza")); assertTrue(exported!!.contains("17,00"))
@@ -61,6 +63,10 @@ class BusinessTest {
         val app = compose.activity.application as PrinterApplication
         compose.runOnIdle { app.pricing.save(fixture()) }
         compose.onNodeWithTag("open-pricing").performClick()
+        compose.onNodeWithTag("pricing-tab-2").performClick()
+        compose.onNodeWithText("Editar Material de prueba").performScrollTo().performClick()
+        screenshot("pricing-material-tablet.png")
+        compose.onNodeWithText("Cancelar").performClick()
         compose.onNodeWithTag("pricing-tab-1").performClick()
         screenshot("pricing-tablet.png")
         try {
@@ -72,10 +78,50 @@ class BusinessTest {
             compose.onNodeWithTag("pricing-tab-1").performClick()
             compose.onNodeWithTag("model-printing").performScrollTo().assertIsDisplayed()
             screenshot("pricing-compact-dark.png")
+            compose.onNodeWithTag("pricing-tab-2").performClick()
+            compose.onNodeWithText("Editar Material de prueba").performScrollTo().performClick()
+            screenshot("pricing-material-compact-dark.png")
+            compose.onNodeWithText("Cancelar").performClick()
         } finally {
             shell("settings put system font_scale 1.0")
             shell("cmd uimode night no")
             shell("wm size 1600x1000")
+        }
+    }
+    @Test fun replacingModelKeepsMissingMaterialsVisibleAndUpdatesSelectedDesignTariff() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val store = PricingStore(context, "pricing-replace-${UUID.randomUUID()}").apply { save(fixture()) }
+        compose.runOnUiThread { compose.activity.setContent { JesperTheme { BusinessScreen(store, {}, {}, { _, _, _ -> }) } } }
+        compose.onNodeWithText("Añadir material").performScrollTo().performClick()
+        compose.onNodeWithText("Material de prueba").performClick()
+        compose.onNodeWithTag("material-test-material").performScrollTo().performTextInput("100")
+        compose.onNodeWithTag("materials-reviewed").performScrollTo().performClick()
+        compose.onNodeWithText("DATOS DE PRUEBA").performScrollTo().performClick()
+        compose.onNodeWithTag("printing-minutes").performScrollTo().performTextInput("0")
+        compose.onNodeWithTag("assembly-minutes").performScrollTo().performTextInput("0")
+        compose.onNodeWithTag("preview-customer").performScrollTo().assertExists()
+        compose.onNodeWithTag("material-test-material").performScrollTo().performTextReplacement("100\n999")
+        compose.onNodeWithTag("quote-incomplete").performScrollTo().assertExists()
+        compose.onNodeWithTag("material-test-material").performScrollTo().performTextReplacement("100")
+        compose.onNodeWithTag("preview-customer").performScrollTo().assertExists()
+        compose.runOnIdle { store.save(fixture().copy(materials = emptyList(),
+            design = listOf(fixture().design.single().copy(hourly = d("12"))))) }
+        compose.onNodeWithTag("quote-incomplete").performScrollTo().assertExists()
+        compose.onNodeWithTag("preview-customer").assertDoesNotExist()
+        compose.onNodeWithTag("missing-material").performScrollTo().assertExists()
+        compose.onNodeWithTag("design-rate").performScrollTo().assertTextContains("12", substring = true)
+    }
+    @Test fun editingPercentagesKeepsFractionsAndDoesNotRoundToZero() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val store = PricingStore(context, "pricing-percent-${UUID.randomUUID()}").apply { save(fixture()) }
+        compose.runOnUiThread { compose.activity.setContent { JesperTheme { BusinessScreen(store, {}, {}, { _, _, _ -> }) } } }
+        compose.onNodeWithTag("pricing-tab-1").performClick()
+        compose.onNodeWithTag("model-margin").performScrollTo().performTextReplacement("1")
+        compose.onNodeWithTag("model-tax").performScrollTo().performTextReplacement("7,5")
+        compose.onNodeWithText("Guardar tarifas").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(0, d("0.01").compareTo(store.model.value!!.additionalMargin))
+            assertEquals(0, d("0.075").compareTo(store.model.value!!.tax))
         }
     }
     private fun shell(command: String) {
