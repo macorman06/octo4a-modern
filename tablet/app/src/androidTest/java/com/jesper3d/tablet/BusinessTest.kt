@@ -87,6 +87,12 @@ class BusinessTest {
             compose.onNodeWithText("Editar Material de prueba").performScrollTo().performClick()
             screenshot("pricing-material-compact-dark.png")
             compose.onNodeWithText("Cancelar").performClick()
+            compose.waitUntil(10000) {
+                !androidx.core.view.WindowCompat.getInsetsController(compose.activity.window, compose.activity.window.decorView)
+                    .isAppearanceLightStatusBars
+            }
+            InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500, 5000)
+            screenshot("pricing-compact-dark-after-dialog.png")
         } finally {
             shell("settings put system font_scale 1.0")
             shell("cmd uimode night no")
