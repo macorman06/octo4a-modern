@@ -34,6 +34,13 @@ class PrinterService : Service() {
         if (intent?.action == "DISCONNECT") { controller.disconnect(); stopSelf(); return START_NOT_STICKY }
         deviceName = intent?.getStringExtra("device")
         if (deviceName == null) { stopSelf(); return START_NOT_STICKY }
+        val usb = getSystemService(USB_SERVICE) as UsbManager
+        val device = usb.deviceList.values.firstOrNull { it.deviceName == deviceName }
+        if (device == null || !usb.hasPermission(device)) {
+            controller.notice("Falta el permiso USB o el cable se ha desconectado.")
+            stopSelf()
+            return START_NOT_STICKY
+        }
         val pending = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(this, "printer").setSmallIcon(R.drawable.ic_printer)
             .setContentTitle("Jesper 3D · USB activo").setContentText("Conexión directa con la impresora")

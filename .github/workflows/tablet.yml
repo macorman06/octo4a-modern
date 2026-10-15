@@ -48,7 +48,7 @@ jobs:
           script: |
             adb shell wm size 1600x1000
             adb shell wm density 160
-            cd tablet && bash gradlew :app:connectedDebugAndroidTest --stacktrace
+            (cd tablet && bash gradlew :app:connectedDebugAndroidTest --stacktrace)
             mkdir -p tablet/screenshots
             adb pull /sdcard/Android/data/com.jesper3d.tablet/files/. tablet/screenshots/
       - uses: actions/upload-artifact@v4

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-feature android:name="android.hardware.usb.host" android:required="true" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
@@ -12,7 +13,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- connectedDevice also permits a USB runtime grant via UsbManager.requestPermission.
+             AGP 8.7 lint only checks the alternative manifest permissions. Both Activity
+             and Service verify hasPermission before starting this USB-only foreground service. -->
         <service android:name=".PrinterService" android:exported="false"
+            tools:ignore="ForegroundServicePermission"
             android:foregroundServiceType="connectedDevice" />
     </application>
 </manifest>
