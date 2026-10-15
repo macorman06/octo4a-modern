@@ -1,0 +1,9 @@
+<resources>
+    <!-- Set the native window's contrast before Compose or Activity focus is ready. -->
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:colorAccent">#97D5C4</item>
+    </style>
+</resources>

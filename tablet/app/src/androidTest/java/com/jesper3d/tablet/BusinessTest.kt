@@ -82,6 +82,7 @@ class BusinessTest {
                 !androidx.core.view.WindowCompat.getInsetsController(compose.activity.window, compose.activity.window.decorView)
                     .isAppearanceLightStatusBars
             }
+            InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500, 5000)
             screenshot("pricing-compact-dark.png")
             compose.onNodeWithTag("pricing-tab-2").performClick()
             compose.onNodeWithText("Editar Material de prueba").performScrollTo().performClick()
