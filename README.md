@@ -2,7 +2,7 @@
 
 Fork con una nueva app Android nativa para controlar impresoras Marlin **por USB directo desde la tablet**.
 
-El proyecto nuevo está en **[tablet/](tablet/README.md)**: ajustes activos, temperaturas, movimientos y visualización/medición de la malla bilineal. La conexión física con la impresora y la tablet requiere validación. Las APK de desarrollo se generan mediante el flujo **Android tablet** de Actions.
+El proyecto nuevo está en **[tablet/](tablet/README.md)**: ajustes activos, temperaturas, movimientos y visualización/medición de la malla bilineal. La versión **0.2.0-alpha** añade una interfaz minimalista, estado explícito de guardado, progreso del sondeo, historial/comparación de mallas, exportación y diagnóstico persistente. Corrige el cierre silencioso de la sesión al agotarse un plazo de respuesta. La corrección del comportamiento observado requiere validación en la impresora real. Las APK de desarrollo se generan mediante el flujo **Android tablet** de Actions.
 
 El código original de Octo4a se conserva en `app/`. La nueva app no necesita ejecutar OctoPrint. Se mantiene la licencia AGPL-3.0 del proyecto de origen.
 
