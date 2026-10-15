@@ -35,15 +35,19 @@ internal fun timeLabel(time: Long?) = time?.let { SimpleDateFormat("dd MMM · HH
 @Composable
 internal fun JesperTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
-    val activity = LocalContext.current as? android.app.Activity
+    val activity = LocalContext.current.findActivity()
     val view = LocalView.current
-    SideEffect {
-        activity?.window?.let { window ->
-            WindowCompat.getInsetsController(window, view).apply {
+    DisposableEffect(activity, view, dark) {
+        val window = activity?.window
+        // During Activity recreation the first composition can precede window attachment.
+        val update = Runnable {
+            window?.let { WindowCompat.getInsetsController(it, it.decorView) }?.apply {
                 isAppearanceLightStatusBars = !dark
                 isAppearanceLightNavigationBars = !dark
             }
         }
+        window?.decorView?.post(update)
+        onDispose { window?.decorView?.removeCallbacks(update) }
     }
     val colors = if (dark) darkColorScheme(
         primary = Color(0xFF97D5C4), onPrimary = Color(0xFF073B30),
@@ -61,6 +65,12 @@ internal fun JesperTheme(content: @Composable () -> Unit) {
         outline = Color(0xFFB3BEB1), outlineVariant = Color(0xFFE0E5DC))
     MaterialTheme(colorScheme = colors, shapes = Shapes(
         small = RoundedCornerShape(8.dp), medium = RoundedCornerShape(12.dp), large = RoundedCornerShape(18.dp)), content = content)
+}
+
+private tailrec fun android.content.Context.findActivity(): android.app.Activity? = when (this) {
+    is android.app.Activity -> this
+    is android.content.ContextWrapper -> if (baseContext === this) null else baseContext.findActivity()
+    else -> null
 }
 
 @Composable

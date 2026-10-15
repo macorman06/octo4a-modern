@@ -47,6 +47,7 @@ class BusinessTest {
         listOf("design-minutes" to "60", "design-rate" to "10", "printing-minutes" to "120", "assembly-minutes" to "30").forEach { (tag, value) ->
             compose.onNodeWithTag(tag).performScrollTo().performTextInput(value)
         }
+        shell("input keyevent 4") // Close the IME before capturing the complete result.
         compose.onNodeWithTag("estimated-profit").performScrollTo().assertExists()
         screenshot("pricing-calculation-tablet.png")
         compose.onNodeWithTag("preview-customer").performScrollTo().performClick()
@@ -77,6 +78,10 @@ class BusinessTest {
             compose.onNodeWithText("Presupuestos").assertIsDisplayed()
             compose.onNodeWithTag("pricing-tab-1").performClick()
             compose.onNodeWithTag("model-printing").performScrollTo().assertIsDisplayed()
+            compose.waitUntil(10000) {
+                !androidx.core.view.WindowCompat.getInsetsController(compose.activity.window, compose.activity.window.decorView)
+                    .isAppearanceLightStatusBars
+            }
             screenshot("pricing-compact-dark.png")
             compose.onNodeWithTag("pricing-tab-2").performClick()
             compose.onNodeWithText("Editar Material de prueba").performScrollTo().performClick()
