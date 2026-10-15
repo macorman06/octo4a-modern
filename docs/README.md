@@ -21,6 +21,7 @@ Fecha: 15 de octubre de 2026. Estado: propuesta organizada para implementar por 
 - [Hoja de ruta](HOJA_DE_RUTA.md): orden, dependencias y criterios de entrega.
 - [Primera función: Mejoras](features/F01-MEJORAS.md): especificación lista para desarrollar después de la base común.
 - [Presupuestos internos y para cliente](features/F04-PRESUPUESTOS.md): separación de datos, cálculo y casos de aceptación.
+- [UI nativa de Presupuestos 0.3](UI_PRESUPUESTOS.md): identidad conservada, formularios, separación pública/privada y alcance de la evidencia visual.
 
 ## Qué existe hoy
 
