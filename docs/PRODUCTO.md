@@ -79,6 +79,8 @@ La primera versión guarda información manual. No compara precios en tiendas, h
 
 ## M6. Presupuestos
 
+La regla económica actual es [MODELO_ECONOMICO.md](MODELO_ECONOMICO.md): el trabajo propio se cobra como ingreso y no se vuelve a restar como gasto; electricidad y otros gastos son opcionales y su repercusión es independiente. Las descripciones de detalle siguientes deben interpretarse con esa separación.
+
 Responsabilidad: preparar un precio antes de comprometer el pedido y conservar lo que se ofreció.
 
 **Vista interna:** cantidades, gramos, soportes/merma prevista, horas de máquina, energía, trabajo manual, acabados, embalaje, transporte, comisiones previstas, contingencia opcional, coste total, precio propuesto y margen. Cada partida conserva su origen y si es estimada o conocida. Las partidas desconocidas aparecen pendientes y afectan a la indicación de completitud.

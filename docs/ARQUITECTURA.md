@@ -75,14 +75,16 @@ Relaciones importantes: un cliente tiene varios pedidos; un presupuesto tiene va
 
 ## Costes sin resultados engañosos
 
+**Actualización del modelo:** prevalece [MODELO_ECONOMICO.md](MODELO_ECONOMICO.md). Diseño, impresión y montaje propios son importes de venta, no gastos a descontar. El cálculo de una tarifa cobrada no crea un gasto de máquina o trabajo. La versión 0.3 incorpora este motor independiente y el perfil privado; inventario y pedidos siguen pendientes.
+
 Separar **previsto**, **registrado como real** y **pendiente**. El dato real también puede haber sido introducido manualmente; el origen y la calidad son campos diferentes.
 
 Partidas previstas para incorporar de forma gradual:
 
 1. Material: gramos totales consumidos × coste por gramo del lote. Registrar soportes y residuos; evitar sumarlos otra vez si ya estaban incluidos en el peso total.
 2. Energía estimada: potencia media configurada en kW × horas × tarifa por kWh. Una medición de energía real sustituye esa estimación; no se suma encima. La potencia nominal de la fuente no es una lectura de consumo.
-3. Máquina: horas × tarifa opcional de desgaste/mantenimiento. Definir qué incluye para no cobrar la energía dos veces dentro del cálculo interno.
-4. Trabajo manual: preparación, diseño y acabado, por tiempo y tarifa configurados; distinguir partidas por unidad y por lote.
+3. Impresión: horas × tarifa de venta. Es un importe cobrado, no un gasto automático de máquina, desgaste o mantenimiento.
+4. Trabajo propio: diseño y montaje por tiempo y tarifa de venta, separados de gastos externos; distinguir partidas por unidad y por lote.
 5. Consumibles, embalaje, servicios externos, transporte y comisiones, cuando se conozcan.
 6. Contingencia prevista opcional, visible como hipótesis del presupuesto. En realización se contabilizan los fallos de verdad; no se les suma automáticamente una segunda reserva por fallos.
 
@@ -90,11 +92,11 @@ Coste de pedido = suma de los costes asignados de todos los intentos, incluidos 
 
 Precio de venta y coste son campos distintos. Un precio final puede fijarse manualmente con coste aún incompleto; la app permite preparar el presupuesto pero indica internamente que la rentabilidad no está completamente calculada.
 
-Margen sobre venta = (precio − coste) / precio. Recargo sobre coste = (precio − coste) / coste. No son el mismo porcentaje. Precio cero o coste cero dejan indefinido el cociente correspondiente. Una sugerencia para margen objetivo usa coste / (1 − margen), con 0 ≤ margen < 1 y coste completo conocido.
+El margen comercial adicional se aplica a materiales más importes por trabajo y gastos repercutidos: base / (1 − margen_adicional). No se confunde con el margen efectivo del beneficio. Beneficio estimado del trabajo = venta sin impuestos − materiales − gastos adicionales registrados, sin restar otra vez el trabajo propio. La remuneración por hora activa excluye la impresión automática. Ver fórmulas y redondeo en el modelo actualizado.
 
 Trabajar en EUR al principio. No agregar otras monedas sin conversión explícita. Definir y probar redondeo decimal al introducir el motor: cálculo con precisión suficiente, redondeo de las partidas mostradas a céntimos y total igual a la suma de esas partidas. Preservar tarifas y reglas con versión en cada presupuesto enviado y cierre de coste; una corrección posterior es explícita y queda registrada.
 
-Los informes distinguen gasto de compra, valor del material consumido, venta acordada y dinero cobrado. No restar a la vez la compra de una bobina y su consumo como si fueran dos costes de producción. El «margen sobre costes registrados» no se denomina beneficio neto ni contabilidad fiscal. La primera versión no calcula obligaciones tributarias ni genera facturas fiscales.
+Los informes distinguen gasto de compra, valor del material consumido, venta acordada y dinero cobrado. No restar a la vez la compra de una bobina y su consumo como si fueran dos costes de producción. Mostrar «beneficio estimado del trabajo», que incluye la remuneración propia y no es resultado después de impuestos personales o gastos no registrados. El porcentaje de impuestos configurable solo aplica el modelo introducido por el usuario; no determina obligaciones tributarias ni genera facturas fiscales.
 
 ## Presupuesto interno y salida para cliente
 

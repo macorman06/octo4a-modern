@@ -2,11 +2,11 @@
 
 Fork con una nueva app Android nativa para controlar impresoras Marlin **por USB directo desde la tablet**.
 
-El proyecto nuevo está en **[tablet/](tablet/README.md)**: ajustes activos, temperaturas, movimientos y visualización/medición de la malla bilineal. La versión **0.2.0-alpha** añade una interfaz minimalista, estado explícito de guardado, progreso del sondeo, historial/comparación de mallas, exportación y diagnóstico persistente. Corrige el cierre silencioso de la sesión al agotarse un plazo de respuesta. La corrección del comportamiento observado requiere validación en la impresora real. Las APK de desarrollo se generan mediante el flujo **Android tablet** de Actions.
+El proyecto nuevo está en **[tablet/](tablet/README.md)**: ajustes activos, temperaturas, movimientos y visualización/medición de la malla bilineal. La versión **0.3.0-alpha** incorpora un módulo de presupuestos con perfil económico privado importable, catálogo editable, cálculo decimal y salida de cliente. Conserva las mejoras de sesión USB, guardado, historial de mallas y diagnóstico de 0.2; la corrección de la desconexión observada sigue requiriendo validación física. Las APK de desarrollo se generan mediante el flujo **Android tablet** de Actions.
 
 El código original de Octo4a se conserva en `app/`. La nueva app no necesita ejecutar OctoPrint. Se mantiene la licencia AGPL-3.0 del proyecto de origen.
 
-La evolución hacia gestión del taller y ventas está definida en **[el plan de producto](docs/README.md)**: módulos separados, inventario, compras y enlaces, costes, presupuestos internos y para cliente, pedidos, informes y mejoras. Es planificación; estas funciones todavía no forman parte de la APK 0.2.
+La evolución hacia gestión del taller y ventas está definida en **[el plan de producto](docs/README.md)**: módulos separados, inventario, compras y enlaces, costes, presupuestos internos y para cliente, pedidos, informes y mejoras. El [modelo económico](docs/MODELO_ECONOMICO.md) ya tiene motor y cálculo provisional en 0.3; historial de ofertas, pedidos, inventario e informes completos siguen pendientes.
 
 ---
 

@@ -1,6 +1,6 @@
 # Hoja de ruta por funciones
 
-Fecha: 15 de octubre de 2026. Todo el trabajo F00–F10 está propuesto y pendiente de implementar. No asignar fechas ficticias ni prometer todas las funciones para una única versión.
+Fecha: 15 de octubre de 2026. F00–F10 sigue siendo la secuencia de módulos completos. La petición posterior de incorporar el modelo económico adelanta en 0.3 un motor aislado, perfil privado y cálculo provisional de F03/F04a; no da por terminadas estas funciones ni las dependencias de inventario, copias completas y revisiones. No asignar fechas ficticias ni prometer todas las funciones para una única versión.
 
 ## Forma de trabajar
 
@@ -36,7 +36,7 @@ No incluye reservas complejas, reparto de portes automático ni múltiples almac
 
 ## F03 — Trabajos SD manuales y cálculo de costes
 
-Depende de F02. Registrar un intento sin tener un pedido: duración prevista/conocida, unidades, material y resultado. Añadir tarifas configurables, costes por intento y consumos de inventario. Costes desconocidos visibles, ningún precio o potencia supuestos por defecto.
+Depende de F02 para consumos reales. Registrar un intento sin tener un pedido: duración prevista/conocida, unidades, material y resultado. Tarifas de venta del trabajo propio separadas de materiales y gastos reales; ver [modelo económico](MODELO_ECONOMICO.md). En 0.3 se adelanta el motor sin registro de intentos. Los precios y potencia proceden del perfil explícito del usuario, con las estimaciones identificadas.
 
 Se acepta cuando un intento fallido conserva gasto, el material se descuenta una sola vez, soportes no duplican gramos ya incluidos, cambiar tarifas no reescribe un coste cerrado y un trabajo sigue registrándose sin USB. Resumen básico de horas, gramos y coste disponible desde esta entrega.
 

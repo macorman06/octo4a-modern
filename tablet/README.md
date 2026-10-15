@@ -4,7 +4,15 @@ Primera versión nativa para una tablet Android conectada **directamente por USB
 
 La nueva app funciona sin instalar OctoPrint, Alpine, Python ni un servidor. Reutiliza la familia de controladores `usb-serial-for-android` que usa Octo4a, actualizada y desacoplada de su puente de terminal virtual. No abras ambos programas sobre el mismo puerto USB.
 
-## Novedades de la versión 0.2
+## Versión 0.3: modelo económico y cálculo provisional
+
+Nueva área **Presupuestos**, independiente de la conexión USB: importar/exportar un perfil privado JSON, editar tarifas y catálogo de materiales, calcular un lote y generar una vista/texto para el cliente con concepto y precio final. Diseño, impresión y montaje son ingresos por trabajo propio, no gastos duplicados. Electricidad opcional, gastos registrados/repercutidos separados, margen adicional e impuestos configurables. Dinero con aritmética decimal y medias históricas que conservan precios repetidos.
+
+El perfil privado se entrega separado de la APK y no se publica en el fork. Importarlo no crea compras, existencias ni pedidos. El modelo se conserva en la tablet y puede exportarse; el cálculo es provisional, sin historial de presupuestos enviados/aceptados ni PDF. Las horas y consumos empiezan pendientes. Las actualizaciones con firma temporal pueden requerir reinstalar: exporta tu modelo antes de desinstalar.
+
+Detalles: [modelo económico](../docs/MODELO_ECONOMICO.md).
+
+### Control de impresora incorporado en 0.2
 
 - Interfaz minimalista con modo claro/oscuro del sistema y la cama como pantalla inicial.
 - Progreso por fases, tiempo transcurrido y puntos recibidos durante la medición.
@@ -52,7 +60,7 @@ Abre **esta carpeta `tablet/`** en Android Studio. El proyecto original `app/` t
 Requisitos: JDK 17, Android SDK 35 y acceso a Google Maven, Maven Central, JitPack y Gradle. Las versiones están fijadas en los archivos Gradle. No se afirma que sean las versiones más recientes.
 
 ```powershell
-.\gradlew.bat :protocol:test :app:lintDebug :app:assembleDebug
+.\gradlew.bat :protocol:test :pricing:test :app:lintDebug :app:assembleDebug
 ```
 
 La APK de prueba se genera en `app/build/outputs/apk/debug/app-debug.apk`. El flujo **Android tablet** de GitHub Actions ejecuta esas mismas comprobaciones, pruebas del controlador con respuestas simuladas y pruebas de interfaz en Android 15. Publica el artefacto `jesper3d-tablet-debug`. No requiere las claves de firma privadas de Octo4a. Es una compilación de desarrollo, no una publicación en Google Play.

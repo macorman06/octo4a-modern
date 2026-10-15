@@ -20,7 +20,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Test protocol, check Android and assemble APK
         working-directory: tablet
-        run: bash gradlew :protocol:test :app:lintDebug :app:assembleDebug --stacktrace
+        run: bash gradlew :protocol:test :pricing:test :app:lintDebug :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: jesper3d-tablet-debug
@@ -32,6 +32,7 @@ jobs:
           name: tablet-check-reports
           path: |
             tablet/protocol/build/reports/tests/
+            tablet/pricing/build/reports/tests/
             tablet/app/build/reports/lint-results-debug.html
       - name: Enable emulator acceleration
         run: |

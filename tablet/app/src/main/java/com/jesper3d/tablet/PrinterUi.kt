@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,8 +53,16 @@ internal fun JesperTheme(content: @Composable () -> Unit) {
 
 @Composable
 internal fun PrinterScreen(state: UiState, printer: PrinterController, devices: List<UsbSerialDriver>, scan: () -> Unit,
-    connect: (String, Int) -> Unit, export: ExportDocument) {
+    connect: (String, Int) -> Unit, export: ExportDocument, importPricing: () -> Unit = {}) {
     var page by rememberSaveable { mutableIntStateOf(1) }
+    var pricing by rememberSaveable { mutableStateOf(false) }
+    if (pricing) {
+        com.jesper3d.tablet.business.BusinessScreen(
+            (LocalContext.current.applicationContext as PrinterApplication).pricing,
+            onBack = { pricing = false }, importProfile = importPricing, export = export,
+            connected = state.connected, onEmergency = printer::emergency)
+        return
+    }
     var confirm by remember { mutableStateOf<Confirmation?>(null) }
     var connectionDialog by rememberSaveable { mutableStateOf(false) }
     var profileDialog by rememberSaveable { mutableStateOf(false) }
@@ -80,6 +89,10 @@ internal fun PrinterScreen(state: UiState, printer: PrinterController, devices: 
                     }, enabled = !state.busy) { Text(if (state.connected) "Desconectar" else "Conectar USB") }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Impresora", Modifier.padding(12.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+                    TextButton({ pricing = true }, Modifier.testTag("open-pricing")) { Text("Presupuestos") }
+                }
                 Row(Modifier.weight(1f)) {
                     if (wide) Column(Modifier.width(148.dp).fillMaxHeight().padding(horizontal = 12.dp, vertical = 28.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -92,7 +105,7 @@ internal fun PrinterScreen(state: UiState, printer: PrinterController, devices: 
                             }
                         }
                         Spacer(Modifier.weight(1f))
-                        Text("Jesper 3D\n0.2 · Android", Modifier.padding(16.dp), style = MaterialTheme.typography.labelSmall,
+                        Text("Jesper 3D\n0.3 · Android", Modifier.padding(16.dp), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(if (wide) 32.dp else 20.dp),

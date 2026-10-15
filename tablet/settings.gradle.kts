@@ -10,4 +10,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "Jesper3D"
-include(":app", ":protocol")
+include(":app", ":protocol", ":pricing")

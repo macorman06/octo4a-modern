@@ -2,6 +2,8 @@
 
 Estado: especificación propuesta, pendiente de implementar. Dependencias: F02 y motor de costes F03. Integración con pedidos al incorporar F05.
 
+Actualización: [MODELO_ECONOMICO.md](../MODELO_ECONOMICO.md) sustituye las hipótesis económicas anteriores. En 0.3 se adelanta el motor y un cálculo provisional con perfil privado, sin inventario real ni historial de ofertas. F04b y la gestión comercial siguen pendientes. Materiales son gasto; diseño, impresión y montaje propios son ingreso y no se descuentan de nuevo.
+
 ## Resultado esperado
 
 Preparar una oferta sabiendo cómo se ha calculado y qué falta por conocer. El propietario ve el detalle; el cliente ve por defecto el concepto o referencia y el precio final total. El precio que se muestra al cliente coincide exactamente con la revisión guardada.
@@ -22,9 +24,9 @@ Agrupar sin esconder ninguna partida:
 
 - Alcance: cantidad, variantes y descripción; coste fijo del lote separado de coste por unidad.
 - Materiales: bobina/lote o tarifa de referencia, gramos estimados, soportes, purga y otros residuos. Indicar si el total del laminador ya los incluye.
-- Máquina: duración estimada y tarifa opcional por hora; definir si es únicamente desgaste/mantenimiento o incluye otras partidas.
+- Impresión: duración estimada y tarifa de venta por hora; no se convierte en gasto de máquina, desgaste o amortización.
 - Energía: potencia media y tarifa con procedencia/fecha o energía medida de referencia. Siempre estimada para el trabajo futuro, aunque se base en una medición anterior.
-- Trabajo: diseño, preparación, montaje/acabado y sus tiempos/tarifas.
+- Trabajo propio: diseño y montaje/acabado, con sus tiempos y tarifas cobradas. Los desembolsos a terceros se registran aparte si existen.
 - Otros: consumibles, embalaje, servicios, transporte, comisiones y contingencia opcional.
 - Resultado: coste total previsto, coste unitario previsto, precio final total, margen sobre venta y recargo sobre coste diferenciados.
 - Calidad del cálculo: campos pendientes, hipótesis y fecha/versión de tarifas. No mostrar un margen completo si el coste solo es parcial.
@@ -47,7 +49,7 @@ La salida no contiene notas privadas, IDs de compras, coste de bobinas, rutas in
 
 Previsualización y exportación usan la misma revisión y selección de campos. Las acciones se denominan «Vista para cliente», «Copiar texto para cliente» y «Exportar PDF para cliente». Exportar el detalle propio es otra acción claramente identificada como interna.
 
-Esta salida es un presupuesto, no una factura fiscal. No se añaden ni calculan impuestos de forma automática en esta primera función; la configuración comercial necesaria para ello se definirá antes de ampliar ese alcance.
+Esta salida es un presupuesto, no una factura fiscal. Se aplica únicamente el porcentaje de impuestos que el usuario configure, inicialmente el de su perfil, sin inferir el tratamiento fiscal. El beneficio usa la venta sin esos impuestos.
 
 ## Versiones y estados
 
@@ -65,8 +67,8 @@ Si la aceptación difiere del importe enviado, crear la revisión que refleja el
 - Distinguir cantidades por pieza y por lote. Multiplicar por unidades solo las partidas por unidad.
 - Un total de gramos que ya contiene soportes/merma no recibe otro suplemento implícito por esos mismos gramos.
 - Una contingencia es una reserva prevista explícita, no material realmente consumido.
-- Separar coste y precio. Margen sobre venta y recargo sobre coste llevan nombres y fórmulas distintas.
-- Valores monetarios decimales exactos y regla de redondeo documentada. El total mostrado coincide con la suma de partidas mostradas y con el total público.
+- Separar gasto y precio. El margen adicional se aplica a la base que ya incluye el trabajo cobrado; no equivale al beneficio total. Los gastos opcionales se registran y repercuten de forma independiente.
+- Valores decimales exactos: sumar materiales con precisión y redondear su subtotal, cerrar cada partida de trabajo a céntimos y redondear electricidad una sola vez por trabajo. Ver modelo actualizado. El total coincide con las partidas cerradas y con la salida pública.
 - No dividir por cero al calcular margen/coste unitario. Exigir cantidad positiva para un presupuesto de piezas y precio final no negativo. Permitir un precio cero explícito para una muestra, con margen sobre venta sin definir.
 - Coste pendiente produce estado incompleto, no una partida de cero euros.
 

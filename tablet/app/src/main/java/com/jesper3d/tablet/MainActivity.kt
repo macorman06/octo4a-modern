@@ -37,6 +37,16 @@ import java.io.File
 
 class MainActivity : ComponentActivity() {
     private val printer get() = (application as PrinterApplication).printer
+    private val pricing get() = (application as PrinterApplication).pricing
+    private var pendingPricing by mutableStateOf<com.jesper3d.pricing.PricingModel?>(null)
+    private val importPricing = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) runCatching {
+            val bytes = requireNotNull(contentResolver.openInputStream(uri)).use {
+                it.readBytesLimited(com.jesper3d.tablet.business.PricingJson.MAX_BYTES)
+            }
+            com.jesper3d.tablet.business.PricingJson.parse(bytes.toString(Charsets.UTF_8))
+        }.onSuccess { pendingPricing = it }.onFailure { pricing.notice("No se importó el perfil: ${it.message}") }
+    }
     private val usb get() = getSystemService(USB_SERVICE) as UsbManager
     private var devices by mutableStateOf<List<UsbSerialDriver>>(emptyList())
     private val permissionAction get() = "$packageName.USB_PERMISSION"
@@ -71,12 +81,21 @@ class MainActivity : ComponentActivity() {
                     else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                     onDispose { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
                 }
-                PrinterScreen(state, printer, devices, ::scan, ::requestConnection) { name, type, text ->
+                PrinterScreen(state, printer, devices, ::scan, ::requestConnection, export = { name, type, text ->
                     runCatching {
                         exportFile.writeText(text)
                         exportDocument.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
                             .setType(type).putExtra(Intent.EXTRA_TITLE, name))
                     }.onFailure { printer.notice("No se pudo preparar la exportación.") }
+                }, importPricing = { importPricing.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) })
+                pendingPricing?.let { candidate ->
+                    AlertDialog(onDismissRequest = { pendingPricing = null }, title = { Text("Importar modelo económico") },
+                        text = { Text("${candidate.design.size} perfiles de diseño y ${candidate.materials.size} materiales. Sustituye las tarifas generales y recalcula el borrador abierto. No modifica la impresora ni crea existencias o compras.") },
+                        confirmButton = { TextButton({
+                            runCatching { pricing.save(candidate) }.onSuccess { pendingPricing = null }
+                                .onFailure { pricing.notice(it.message ?: "No se pudo guardar el perfil."); pendingPricing = null }
+                        }) { Text("Importar modelo") } },
+                        dismissButton = { TextButton({ pendingPricing = null }) { Text("Cancelar") } })
                 }
             }
         }
@@ -96,4 +115,15 @@ class MainActivity : ComponentActivity() {
         ContextCompat.startForegroundService(this, Intent(this, PrinterService::class.java).putExtra("device", name).putExtra("baud", baud))
     }
     override fun onDestroy() { unregisterReceiver(receiver); super.onDestroy() }
+}
+
+private fun java.io.InputStream.readBytesLimited(limit: Int): ByteArray {
+    val output = java.io.ByteArrayOutputStream()
+    val chunk = ByteArray(8192)
+    while (true) {
+        val count = read(chunk)
+        if (count < 0) return output.toByteArray()
+        require(output.size() + count <= limit) { "El perfil supera 256 KB." }
+        output.write(chunk, 0, count)
+    }
 }

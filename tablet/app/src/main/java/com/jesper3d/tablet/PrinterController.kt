@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class PrinterApplication : Application() {
     val printer by lazy { PrinterController(this) }
+    val pricing by lazy { com.jesper3d.tablet.business.PricingStore(this) }
 }
 
 data class UiState(
